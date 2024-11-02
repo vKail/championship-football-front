@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input } from "@nextui-org/react";
-import { ISeason } from "../interface/season.interface";
+import { ISeason } from "../../interface/season.interface";
+import useSeason from "../../hooks/useSeason";
 
 interface SeasonFormProps {
   season: ISeason | null;
@@ -10,13 +11,14 @@ interface SeasonFormProps {
 }
 
 export default function SeasonForm({ season, isEdit, onSave, onClose }: SeasonFormProps) {
-  const [formData, setFormData] = useState<ISeason>({ season_id: "", season_name: "" });
+  const {handleCreateSeason} = useSeason();
+  const [formData, setFormData] = useState<ISeason>({ seasonName: "" });
 
   useEffect(() => {
     if (isEdit && season) {
       setFormData(season);
     } else {
-      setFormData({ season_id: "", season_name: "" });
+      setFormData({ seasonName: "" });
     }
   }, [isEdit, season]);
 
@@ -27,6 +29,9 @@ export default function SeasonForm({ season, isEdit, onSave, onClose }: SeasonFo
 
   const handleSubmit = () => {
     onSave(formData);
+    if (!isEdit) {
+      handleCreateSeason(formData);
+    }
   };
 
   return (
@@ -36,7 +41,7 @@ export default function SeasonForm({ season, isEdit, onSave, onClose }: SeasonFo
           <>
             <ModalHeader>{isEdit ? "Editar Temporada" : "Crear Temporada"}</ModalHeader>
             <ModalBody>
-              <Input label="Nombre de la Temporada" name="season_name" value={formData.season_name} onChange={handleChange} />
+              <Input label="Nombre de la Temporada" name="seasonName" value={formData.seasonName} onChange={handleChange} />
             </ModalBody>
             <ModalFooter>
               <Button color="danger" onPress={onClose}>Cancelar</Button>

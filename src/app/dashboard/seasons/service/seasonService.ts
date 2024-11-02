@@ -11,7 +11,7 @@ export const createSeason = async (season : ISeason) => {
 }
 
 export const updateSeason = async (season : ISeason) => {
-    return await championshipApi.put(`/seasons/${season.season_id}`, season)
+    return await championshipApi.put(`/seasons/${season.seasonId}`, season)
 }
 
 export const deleteSeason = async (id : number) => {
