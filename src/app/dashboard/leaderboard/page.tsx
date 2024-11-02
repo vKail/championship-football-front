@@ -1,8 +1,8 @@
 'use client';
 import { useState } from "react";
 import { ILeaderboard } from "./interface/leaderboard.interface";
-import LeaderboardTable from "./table/leaderboardTable";
-import LeaderboardForm from "./form/leaderboardForm";
+import LeaderboardTable from "./components/table/leaderboardTable";
+import LeaderboardForm from "./components/form/leaderboardForm";
 
 export default function Page() {
   const [leaderboards, setLeaderboards] = useState<ILeaderboard[]>([]);

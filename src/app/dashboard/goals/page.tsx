@@ -1,8 +1,8 @@
 'use client';
 import { useState } from "react";
 import { IGoal } from "./interface/goal.interface";
-import GoalTable from "./table/goalTable";
-import GoalForm from "./form/goalForm";
+import GoalForm from "./components/form/goalForm";
+import GoalTable from "./components/table/goalTable";
 
 
 export default function GoalPage() {

@@ -1,8 +1,8 @@
 'use client';
 import { useState } from "react";
 import { IDt } from "./interfaces/dts.interface";
-import DtTable from "./table/dtTable";
-import DtForm from "./form/dtForm";
+import DtTable from "./components/table/dtTable";
+import DtForm from "./components/form/dtForm";
 
 
 export default function DtPage() {

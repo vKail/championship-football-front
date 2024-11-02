@@ -1,12 +1,14 @@
 'use client';
 import { useState } from "react";
 import { IPlayer } from "./interface/player.interface";
-import PlayerTable from "./table/playerTable";
-import PlayerForm from "./form/playerForm";
+import PlayerTable from "./components/table/playerTable";
+import PlayerForm from "./components/form/playerForm";
+import usePlayers from "./hooks/usePlayer";
+
 
 
 export default function Page() {
-  const [players, setPlayers] = useState<IPlayer[]>([]);
+  const {player, players, handleGetAllPlayers,  handleCreatePlayer} = usePlayers();
   const [selectedPlayer, setSelectedPlayer] = useState<IPlayer | null>(null);
   const [isEdit, setIsEdit] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -24,23 +26,10 @@ export default function Page() {
   };
 
   const handleSavePlayer = (player: IPlayer) => {
-    if (isEdit && selectedPlayer) {
-      setPlayers((prev) =>
-        prev.map((p) =>
-          p.dni === selectedPlayer.dni ? player : p
-        )
-      );
-    } else {
-      setPlayers((prev) => [...prev, player]);
-    }
+    handleCreatePlayer(player);
     handleCloseForm();
   };
 
-  const handleEditPlayer = (player: IPlayer) => {
-    setSelectedPlayer(player);
-    setIsEdit(true);
-    setIsFormOpen(true);
-  };
 
   return (
     <div className="container mx-auto p-4">

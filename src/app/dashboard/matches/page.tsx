@@ -2,8 +2,8 @@
 import { useState } from "react";
 
 import { IMatch } from "./interface/matches.interface";
-import MatchTable from "./table/matchTable";
-import MatchForm from "./form/matchForm";
+import MatchTable from "./components/table/matchTable";
+import MatchForm from "./components/form/matchForm";
 
 export default function Page() {
   const [matches, setMatches] = useState<IMatch[]>([]);

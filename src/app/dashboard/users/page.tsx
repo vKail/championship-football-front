@@ -1,12 +1,13 @@
 'use client';
 import { useState } from "react";
 import { IUser } from "./interfaces/users.interfaces";
-import UserTable from "./table/userTable";
-import UserForm from "./form/userForm";
+import UserTable from "./components/table/userTable";
+import UserForm from "./components/form/userForm";
+import useUser from "./hooks/useUser";
 
 
 export default function Page() {
-  const [users, setUsers] = useState<IUser[]>([]);
+  const {handleCreateUser, handleGetAllUsers} = useUser();
   const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
   const [isEdit, setIsEdit] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -24,23 +25,10 @@ export default function Page() {
   };
 
   const handleSaveUser = (user: IUser) => {
-    if (isEdit && selectedUser) {
-      setUsers((prev: any[]) =>
-        prev.map((usr) =>
-          usr.dni === selectedUser.dni ? user : usr
-        )
-      );
-    } else {
-      setUsers((prev: any) => [...prev, user]);
-    }
+    handleCreateUser(user);
     handleCloseForm();
   };
 
-  const handleEditUser = (user: IUser) => {
-    setSelectedUser(user);
-    setIsEdit(true);
-    setIsFormOpen(true);
-  };
 
   return (
     <div className="container mx-auto p-4">
