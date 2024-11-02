@@ -1,11 +1,11 @@
-import { IDt } from "@/app/dashboard/dts/interfaces/dts.interface";
+import { IDt, IDtResponse } from "@/app/dashboard/dts/interfaces/dts.interface";
 import { createDt, deleteDt, getAllDts, getDtById, updateDt } from "@/app/dashboard/dts/service/dtService";
 import { create } from "zustand";
 
 
 interface DtStatus {
-    dts: IDt[] | null;
-    dt: IDt | null;
+    dts: IDtResponse[] | null;
+    dt: IDtResponse | null;
     isLoading: boolean;
     error: string | null;
     fetchAllDts: () => Promise<boolean>;
@@ -91,7 +91,7 @@ export const useDtStore = create<DtStatus>()((set, get) => ({
             
             if (response?.status === 200) {
                 const currentDts = get().dts || [];
-                const updatedDts = currentDts.map(d => d.dt_id === dt.dt_id ? dt : d);
+                const updatedDts = currentDts.map(d => d.dtId === dt.dtId ? { ...d, ...dt } : d);
                 set({ dts: updatedDts, dt: response.data });
                 return true;
             }
@@ -114,8 +114,8 @@ export const useDtStore = create<DtStatus>()((set, get) => ({
             if (response?.status === 204) {
                 const currentDts = get().dts || [];
                 set({ 
-                    dts: currentDts.filter(d => d.dt_id !== id.toString()),
-                    dt: get().dt?.dt_id === id.toString() ? null : get().dt
+                    dts: currentDts.filter(d => d.dtId !== id),
+                    dt: get().dt?.dtId === id ? null : get().dt
                  });
                 return true;
             }

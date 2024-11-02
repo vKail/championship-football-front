@@ -1,9 +1,19 @@
 import { ITeam } from "../../teams/interfaces/teams.interface";
 
 export interface IDt {
-  dt_id: string;
+  dtId?: number;
   dni: string;
   firstname: string;
   lastname: string;
-  team: ITeam;
+  teamId: number;
+}
+
+
+export interface IDtResponse {
+  dtId?: number;
+  dni: string;
+  firstname: string;
+  lastname: string;
+  teamId: number;
+  teamName: string;
 }
