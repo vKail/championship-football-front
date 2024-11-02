@@ -11,7 +11,7 @@ export const createDt = async (dt : IDt) => {
 }
 
 export const updateDt = async (dt : IDt) => {
-    return await championshipApi.put(`/dts/${dt.dt_id}`, dt)
+    return await championshipApi.put(`/dts/${dt.dtId}`, dt)
 }
 
 export const deleteDt = async (id : number) => {
