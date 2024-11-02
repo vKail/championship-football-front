@@ -68,7 +68,7 @@ export const useSeasonStore = create<SeasonState>((set, get) => ({
             set({ loading: true, error: null });
             const response = await createSeason(season);
             
-            if (response?.status === 201) {
+            if (response?.status === 200) {
                 const currentSeasons = get().seasons || [];
                 set({ seasons: [...currentSeasons, response.data],
                     season: response.data
@@ -93,7 +93,7 @@ export const useSeasonStore = create<SeasonState>((set, get) => ({
             
             if (response?.status === 200) {
                const currentSeasons = get().seasons || [];
-                const updatedSeasons = currentSeasons.map(s => s.season_id === season.season_id ? season : s);
+                const updatedSeasons = currentSeasons.map(s => s.seasonId === season.seasonId ? season : s);
                 set({ seasons: updatedSeasons, season: response.data });
                 return true;
             }
@@ -115,8 +115,8 @@ export const useSeasonStore = create<SeasonState>((set, get) => ({
             
             if (response?.status === 200) {
                 const currentSeasons = get().seasons || [];
-                set({ seasons: currentSeasons.filter(s => s.season_id !== id.toString()),
-                    season: get().season?.season_id === id.toString() ? null : get().season
+                set({ seasons: currentSeasons.filter(s => s.seasonId !== id),
+                    season: get().season?.seasonId === id ? null : get().season
                  });
                 return true;
             }
