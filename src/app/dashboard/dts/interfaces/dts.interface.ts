@@ -5,5 +5,5 @@ export interface IDt {
   dni: string;
   firstname: string;
   lastname: string;
-  team: string;
+  team: ITeam;
 }

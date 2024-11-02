@@ -1,8 +1,9 @@
 'use client';
 import { useState } from "react";
 import { ISeason } from "./interface/season.interface";
-import SeasonTable from "./table/seasonTable";
-import SeasonForm from "./form/seasonForm";
+import SeasonTable from "./components/table/seasonTable";
+import SeasonForm from "./components/form/seasonForm";
+
 
 
 export default function Page() {

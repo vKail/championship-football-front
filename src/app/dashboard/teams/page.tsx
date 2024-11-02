@@ -1,46 +1,29 @@
 'use client';
 import { useState } from "react";
 import { ITeam } from "./interfaces/teams.interface";
-import TeamTable from "./table/teamTable";
-import TeamForm from "./form/teamForm";
+import TeamTable from "./components/table/teamTable";
+import TeamForm from "./components/form/teamForm";
+import useTeams from "./hooks/useTeams";
 
 
 export default function Page() {
-  const [teams, setTeams] = useState<ITeam[]>([]);
-  const [selectedTeam, setSelectedTeam] = useState<ITeam | null>(null);
-  const [isEdit, setIsEdit] = useState(false);
+  const {team, handleCreateTeam, handleGetAllTeams} = useTeams();
   const [isFormOpen, setIsFormOpen] = useState(false);
 
   const handleCreate = () => {
-    setSelectedTeam(null);
-    setIsEdit(false);
+   
     setIsFormOpen(true);
   };
 
   const handleCloseForm = () => {
     setIsFormOpen(false);
-    setSelectedTeam(null);
-    setIsEdit(false);
+    
   };
 
   const handleSaveTeam = (team: ITeam) => {
-    if (isEdit && selectedTeam) {
-      setTeams((prev) =>
-        prev.map((t) =>
-          t.team_id === selectedTeam.team_id ? team : t
-        )
-      );
-    } else {
-      setTeams((prev) => [...prev, team]);
-    }
-    handleCloseForm();
+    handleCreateTeam(team);
   };
 
-  const handleEditTeam = (team: ITeam) => {
-    setSelectedTeam(team);
-    setIsEdit(true);
-    setIsFormOpen(true);
-  };
 
   return (
     <div className="container mx-auto p-4">
@@ -58,8 +41,8 @@ export default function Page() {
 
       {isFormOpen && (
         <TeamForm
-          team={selectedTeam}
-          isEdit={isEdit}
+          team={null}
+          isEdit={false}
           onSave={handleSaveTeam}
           onClose={handleCloseForm}
         />

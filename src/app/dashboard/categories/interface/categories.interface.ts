@@ -1,4 +1,7 @@
+
 export interface ICategory {
-  category_id: string;
-  name: string;
+  categoryId?:   number;
+  categoryName: string;
+  ageMin:       number;
+  ageMax:       number;
 }
