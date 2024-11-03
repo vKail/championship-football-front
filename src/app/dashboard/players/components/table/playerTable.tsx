@@ -37,7 +37,6 @@ export default function PlayerTable() {
   };
 
   const renderCell = (player: IPlayerResponse, columnKey: keyof IPlayerResponse | "actions") => {
-    console.log(players);
     const cellValue = player[columnKey as keyof IPlayer];
     
     if (columnKey === "actions") {

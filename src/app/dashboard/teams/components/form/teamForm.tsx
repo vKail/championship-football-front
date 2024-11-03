@@ -1,4 +1,4 @@
-import { useState, useEffect, use } from "react";
+import { useState, useEffect } from "react";
 import {
   Modal,
   ModalContent,
@@ -28,22 +28,34 @@ export default function TeamForm({
   onClose,
 }: TeamFormProps) {
   const { categories, handleGetAllCategories, handleCreateCategory } = useCategory();
-  const [searchCategory, setSearchCategory] = useState<number[]>([])
   const [formData, setFormData] = useState<ITeam>({
     name: "",
     playerIds: [],
     categoryIds: [],
   });
+  
+  // Estado para mantener las keys seleccionadas en el formato que espera NextUI
+  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (isEdit && team) {
-      setFormData(team);
+      setFormData({
+        ...team,
+        categoryIds: team.categoryIds ?? [],
+      });
+      
+      // Convertir los categoryIds a strings y crear un Set para el Select
+      const selectedKeys = new Set(
+        (team.categoryIds ?? []).map(id => id.toString())
+      );
+      setSelectedCategories(selectedKeys);
     } else {
       setFormData({
         name: "",
         playerIds: [],
         categoryIds: [],
       });
+      setSelectedCategories(new Set());
     }
   }, [isEdit, team]);
 
@@ -57,23 +69,15 @@ export default function TeamForm({
   };
 
   const handleSelectChange = (keys: Set<React.Key>) => {
-    console.log("Selected keys:", keys);
-  
-    const selectedCategories = Array.from(keys)
-      .map((key) => {
-        const numericKey = Number(key); 
-        
-        return categories?.find((cat) => cat.categoryId === numericKey);
-      })
-      .filter(Boolean); // Filtrar cualquier resultado 'undefined'
+    setSelectedCategories(keys as Set<string>);
     
-    const selectedCategoryIds = selectedCategories.map((category) => category?.categoryId).filter((id): id is number => id !== undefined);
-    setSearchCategory(selectedCategoryIds);
-    console.log("Selected categories:", selectedCategories);
-  
+    const selectedCategoryIds = Array.from(keys)
+      .map(key => Number(key))
+      .filter(id => !isNaN(id));
+
     setFormData({
       ...formData,
-      categoryIds: searchCategory ?? [] , // Asegúrate de que 'category' sea un array de categorías seleccionadas
+      categoryIds: selectedCategoryIds,
     });
   };
 
@@ -99,13 +103,14 @@ export default function TeamForm({
               <Select
                 selectionMode="multiple"
                 label="Categoría"
+                selectedKeys={selectedCategories}
                 onSelectionChange={(keys) =>
                   handleSelectChange(keys as Set<React.Key>)
                 }
               >
                 {(categories ?? []).map((category) => (
                   <SelectItem
-                    key={category.categoryId ?? ""}
+                    key={category.categoryId?.toString() ?? ""}
                     value={category.categoryId ?? ""}
                   >
                     {category.categoryName}

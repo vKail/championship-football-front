@@ -1,47 +1,61 @@
-import { useState, useEffect } from "react";
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input } from "@nextui-org/react";
+import { useState, useEffect, use } from "react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input, Select, SelectItem } from "@nextui-org/react";
 import { IGoal } from "../../interface/goal.interface";
+import useTeams from "@/app/dashboard/teams/hooks/useTeams";
+import usePlayers from "@/app/dashboard/players/hooks/usePlayer";
+import useMatch from "@/app/dashboard/matches/hooks/useMatch";
 
 interface GoalFormProps {
-  goal: IGoal | null; // Goal seleccionado o null si es un nuevo registro
-  isEdit: boolean; // Si está en modo de edición o creación
-  onSave: (goal: IGoal) => void; // Función para guardar el goal
-  onClose: () => void; // Función para cerrar el formulario
+  goal: IGoal | null; 
+  isEdit: boolean; 
+  onSave: (goal: IGoal) => void; 
+  onClose: () => void; 
 }
 
 export default function GoalForm({ goal, isEdit, onSave, onClose }: GoalFormProps) {
-  // Estado local para manejar los datos del formulario
+  const {teams, handleGetAllTeams} = useTeams();
+  const {players, handleGetAllPlayers} = usePlayers();
+  const {matches, handleGetAllMatches} = useMatch();
+
   const [formData, setFormData] = useState<IGoal>({
-    goal_id: "",
-    player: { player_id: "", firstname: "", lastname: "", dni: "", bib: "", team: { team_id: "", name: "", category: { category_id: "", name: "" } }},
-    match: { match_id: "", date: "", team_1: "", team_2: "", result: "", status: "", season: { season_id: "", season_name: "" }, category: { category_id: "", name: "" } },
+    goalId: 0,
+    playerId: 0,
+    matchId: 0,
     minute: 0,
-    team: { team_id: "", name: "",  category: { category_id: "", name: "" } },
+    teamId: 0,
   });
 
-  // Efecto para llenar los campos si es modo edición
   useEffect(() => {
     if (isEdit && goal) {
       setFormData(goal);
     } else {
-      // Si no es edición, inicializa el formulario vacío
+    
       setFormData({
-        goal_id: "",
-        player: { player_id: "", firstname: "", lastname: "", dni: "", bib: "", team: { team_id: "", name: "", category: { category_id: "", name: "" } } },
-        match: { match_id: "", date: "", team_1: "", team_2: "", result: "", status: "", season: { season_id: "", season_name: "" }, category: { category_id: "", name: "" } },
+        goalId: 0,
+        playerId: 0,
+        matchId: 0,
         minute: 0,
-        team: { team_id: "", name: "",  category: { category_id: "", name: "" } },
+        teamId: 0,
       });
     }
   }, [isEdit, goal]);
 
-  // Función para manejar los cambios en los campos del formulario
+  useEffect(() => {
+    handleGetAllTeams();
+    handleGetAllPlayers();
+    handleGetAllMatches();
+  }, []);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Función para manejar el envío del formulario
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: parseInt(value) });
+  }
+
   const handleSubmit = () => {
     onSave(formData);
   };
@@ -64,7 +78,42 @@ export default function GoalForm({ goal, isEdit, onSave, onClose }: GoalFormProp
                 value={formData.minute.toString()}
                 onChange={handleChange}
               />
-              {/* Puedes agregar más inputs para player, match y team */}
+              <Select
+                label="Jugador"
+                name="playerId"
+                value={formData.playerId.toString()}
+                onChange={handleSelectChange}
+              >
+                {(players || []).map((player) => (
+                  <SelectItem key={player.playerId} value={player.playerId.toString()}>
+                    {`${player.firstname || ''} ${player.lastname || ''}`}
+                  </SelectItem>
+                ))}
+              </Select>
+              <Select
+                label="Equipo"
+                name="teamId"
+                value={formData.teamId.toString()}
+                onChange={handleSelectChange}
+              >
+                {(teams || []).map((team) => (
+                  <SelectItem key={team.teamId ?? 0} value={(team.teamId ?? 0).toString()}>
+                    {team.name}
+                  </SelectItem>
+                ))}
+              </Select>
+              <Select
+                label="Partido"
+                name="matchId"
+                value={formData.matchId.toString()}
+                onChange={handleSelectChange}
+              >
+                {(matches || []).map((match) => (
+                  <SelectItem key={match.matchId ?? 0} value={(match.matchId ?? 0).toString()}>
+                    {`${match.homeTeamName || ''} vs ${match.awayTeamName || ''}`}
+                  </SelectItem>
+                ))}
+              </Select>
             </ModalBody>
             <ModalFooter>
               <Button color="danger" variant="flat" onPress={onClose}>

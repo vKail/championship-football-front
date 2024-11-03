@@ -1,12 +1,12 @@
-import { IMatch } from "@/app/dashboard/matches/interface/matches.interface";
+import { IMatch, IMatchResponse } from "@/app/dashboard/matches/interface/matches.interface";
 import { createMatch, deleteMatch, getAllMatches, getMatchById, updateMatch } from "@/app/dashboard/matches/service/matchService";
 import { s } from "framer-motion/client";
 import { create } from "zustand";
 
 
 interface MatchState {
-    matches: IMatch[] | null;
-    match: IMatch | null;
+    matches: IMatchResponse[] | null;
+    match: IMatchResponse | null;
     loading: boolean;
     error: string;
     fetchAllMatches: () => Promise<boolean>;
@@ -69,7 +69,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
             set({ loading: true, error: '' });
             const response = await createMatch(match);
             
-            if (response?.status === 201) {
+            if (response?.status === 200) {
                 const currentMatches = get().matches || [];
                 set({ matches: [...currentMatches, response.data], match: response.data });
                 return true;
@@ -92,7 +92,7 @@ export const useMatchStore = create<MatchState>((set, get) => ({
             
             if (response?.status === 200) {
                 const currentMatches = get().matches || [];
-                const updatedMatches = currentMatches.map(m => m.match_id === match.match_id ? match : m);
+                const updatedMatches = currentMatches.map(m => m.matchId === match.matchId ? { ...m, ...match } : m);
                 set({ 
                     matches: updatedMatches, 
                     match: response.data 
@@ -117,8 +117,8 @@ export const useMatchStore = create<MatchState>((set, get) => ({
             
             if (response?.status === 200) {
                 const currentMatches = get().matches || [];
-                set({ matches: currentMatches.filter(m => m.match_id !== id.toString()),
-                    match: get().match?.match_id === id.toString() ? null : get().match
+                set({ matches: currentMatches.filter(m => m.matchId !== id),
+                    match: get().match?.matchId === id ? null : get().match
                  });                
                 return true;
             }

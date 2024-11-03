@@ -1,11 +1,11 @@
-import { IGoal } from "@/app/dashboard/goals/interface/goal.interface";
+import { IGoal, IGoalsResponse } from "@/app/dashboard/goals/interface/goal.interface";
 import { createGoal, deleteGoal, getAllGoals, getGoalById, updateGoal } from "@/app/dashboard/goals/service/goalService";
 import { create } from "zustand";
 
 
 interface GoalState {
-    goals: IGoal[] | null;
-    goal: IGoal | null;
+    goals: IGoalsResponse[] | null;
+    goal: IGoalsResponse | null;
     loading: boolean;
     error: string | null;
     fetchAllGoals: () => Promise<boolean>;
@@ -91,7 +91,7 @@ export const useGoalStore = create<GoalState>((set, get) => ({
             
             if (response?.status === 200) {
                 const currentGoals = get().goals || [];
-                const updatedGoals = currentGoals.map(g => g.goal_id === goal.goal_id ? goal : g);
+                const updatedGoals = currentGoals.map(g => g.goalId === goal.goalId ? { ...g, ...goal } : g);
                 set({ goals: updatedGoals, goal : response.data });
                 return true;
             }
@@ -114,8 +114,8 @@ export const useGoalStore = create<GoalState>((set, get) => ({
             if (response?.status === 204) {
                 const currentGoals = get().goals || [];
                 set({ 
-                    goals: currentGoals.filter(g => g.goal_id !== id.toString()), 
-                    goal: get().goal?.goal_id === id.toString() ? null : get().goal
+                    goals: currentGoals.filter(g => g.goalId !== id), 
+                    goal: get().goal?.goalId === id ? null : get().goal
                  });
                 return true;
             }

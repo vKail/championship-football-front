@@ -3,11 +3,13 @@ import { useState } from "react";
 import { ISeason } from "./interface/season.interface";
 import SeasonTable from "./components/table/seasonTable";
 import SeasonForm from "./components/form/seasonForm";
+import useSeason from "./hooks/useSeason";
 
 
 
 export default function Page() {
   const [seasons, setSeasons] = useState<ISeason[]>([]);
+  const {handleCreateSeason} = useSeason();
   const [selectedSeason, setSelectedSeason] = useState<ISeason | null>(null);
   const [isEdit, setIsEdit] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -25,15 +27,7 @@ export default function Page() {
   };
 
   const handleSaveSeason = (season: ISeason) => {
-    if (isEdit && selectedSeason) {
-      setSeasons((prev) =>
-        prev.map((s) =>
-          s.season_id === selectedSeason.season_id ? season : s
-        )
-      );
-    } else {
-      setSeasons((prev) => [...prev, season]);
-    }
+    handleCreateSeason(season);
     handleCloseForm();
   };
 
