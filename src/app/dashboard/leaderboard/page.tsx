@@ -3,8 +3,10 @@ import { useState } from "react";
 import { ILeaderboard } from "./interface/leaderboard.interface";
 import LeaderboardTable from "./components/table/leaderboardTable";
 import LeaderboardForm from "./components/form/leaderboardForm";
+import useLeaderboard from "./hooks/useLeaderboard";
 
 export default function Page() {
+  const {handleCreateLeaderboard} = useLeaderboard();
   const [leaderboards, setLeaderboards] = useState<ILeaderboard[]>([]);
   const [selectedLeaderboard, setSelectedLeaderboard] = useState<ILeaderboard | null>(null);
   const [isEdit, setIsEdit] = useState(false);
@@ -23,18 +25,9 @@ export default function Page() {
   };
 
   const handleSaveLeaderboard = (leaderboard: ILeaderboard) => {
-    if (isEdit && selectedLeaderboard) {
-      setLeaderboards((prev) =>
-        prev.map((l) =>
-          l.leaderboard_id === selectedLeaderboard.leaderboard_id ? leaderboard : l
-        )
-      );
-    } else {
-      setLeaderboards((prev) => [...prev, leaderboard]);
-    }
+    handleCreateLeaderboard(leaderboard);
     handleCloseForm();
-  };
-
+}
   const handleEditLeaderboard = (leaderboard: ILeaderboard) => {
     setSelectedLeaderboard(leaderboard);
     setIsEdit(true);
@@ -60,8 +53,9 @@ export default function Page() {
           leaderboard={selectedLeaderboard}
           isEdit={isEdit}
           onSave={handleSaveLeaderboard}
-          onClose={handleCloseForm} teams={[]} seasons={[]}        />
+          onClose={handleCloseForm}         />
       )}
     </div>
   );
 }
+

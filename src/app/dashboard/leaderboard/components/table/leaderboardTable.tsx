@@ -1,29 +1,16 @@
 'use client'
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Tooltip } from "@nextui-org/react";
 import { EditIcon } from "@/app/ui/EditIcon";
 import { DeleteIcon } from "@/app/ui/DeleteIcon";
 import { ILeaderboard } from "../../interface/leaderboard.interface";
 import LeaderboardForm from "../form/leaderboardForm";
+import useLeaderboard from "../../hooks/useLeaderboard";
 
 // Datos iniciales de tablas de posiciones
-const initialLeaderboards: ILeaderboard[] = [
-  {
-    leaderboard_id: "LB001",
-    season: { season_id: "S001", season_name: "Temporada 2024" },
-    category: { category_id: "C001", name: "Category A" },
-    team: { team_id: "T001", name: "Team A",  category: { category_id: "C001", name: "Category A" } },
-    points: 10,
-    matches_won: 3,
-    matches_draw: 1,
-    matches_lost: 1,
-    goals_scored: 10,
-  },
-  // ... más tablas
-];
 
 export default function LeaderboardTable() {
-  const [leaderboards, setLeaderboards] = useState<ILeaderboard[]>(initialLeaderboards);
+  const {leaderboards, handleRemoveLeaderboard, handleUpdateLeaderboard, handleGetAllLeaderboards} = useLeaderboard();
   const [selectedLeaderboard, setSelectedLeaderboard] = useState<ILeaderboard | null>(null);
   const [isEdit, setIsEdit] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -36,18 +23,21 @@ export default function LeaderboardTable() {
 
   const handleSaveLeaderboard = (leaderboard: ILeaderboard) => {
     if (isEdit) {
-      setLeaderboards((prev) => prev.map((l) => (l.leaderboard_id === leaderboard.leaderboard_id ? leaderboard : l)));
-    } else {
-      setLeaderboards((prev) => [...prev, leaderboard]);
+      handleUpdateLeaderboard(leaderboard);
     }
     setIsOpen(false);
     setSelectedLeaderboard(null);
     setIsEdit(false);
   };
 
-  const handleDelete = (leaderboard_id: string) => {
-    setLeaderboards((prev) => prev.filter((l) => l.leaderboard_id !== leaderboard_id));
+  const handleDelete = (leaderboardId: number) => {
+    handleRemoveLeaderboard(leaderboardId);
   };
+
+  useEffect(() => {
+    handleGetAllLeaderboards();
+  }, []);
+
 
   const renderCell = (leaderboard: ILeaderboard, columnKey: keyof ILeaderboard | "actions") => {
     const cellValue = leaderboard[columnKey as keyof ILeaderboard];
@@ -61,26 +51,13 @@ export default function LeaderboardTable() {
             </span>
           </Tooltip>
           <Tooltip content="Delete leaderboard">
-            <span onClick={() => handleDelete(leaderboard.leaderboard_id)}>
+            <span onClick={() => handleDelete(leaderboard.leaderboardId ?? 0)}>
               <DeleteIcon />
             </span>
           </Tooltip>
         </div>
       );
     }
-  
-    if (columnKey === "team") {
-      return leaderboard.team ? leaderboard.team.name : "Sin equipo";
-    }
-
-    if (columnKey === "category") {
-      return leaderboard.category ? leaderboard.category.name : "Sin categoría";
-    }
-
-    if (columnKey === "season") {
-      return leaderboard.season ? leaderboard.season.season_name : "Sin temporada";
-    }
-  
     return typeof cellValue === 'object' && cellValue !== null ? JSON.stringify(cellValue) : cellValue as React.ReactNode;
   };
   
@@ -89,10 +66,10 @@ export default function LeaderboardTable() {
     <>
       <Table aria-label="Leaderboard table">
         <TableHeader columns={[
-          { uid: "leaderboard_id", name: "Leaderboard ID" },
-          { uid: "season", name: "Temporada" },
+          { uid: "leaderboardId", name: "Leaderboard ID" },
+          { uid: "seasonName", name: "Temporada" },
           { uid: "category", name: "Categoría" },
-          { uid: "team", name: "Equipo" },
+          { uid: "teamName", name: "Equipo" },
           { uid: "points", name: "Puntos" },
             { uid: "matches_won", name: "Partidos Ganados" },
             { uid: "matches_draw", name: "Partidos Empatados" },
@@ -106,9 +83,9 @@ export default function LeaderboardTable() {
             </TableColumn>
           )}
         </TableHeader>
-        <TableBody items={leaderboards}>
+        <TableBody items={leaderboards ?? []}>
           {(item) => (
-            <TableRow key={item.leaderboard_id}>
+            <TableRow key={item.leaderboardId}>
               {(columnKey) => (
                 <TableCell>
                   {renderCell(item, columnKey as keyof ILeaderboard | "actions")}
@@ -129,8 +106,6 @@ export default function LeaderboardTable() {
             setSelectedLeaderboard(null);
             setIsEdit(false);
           }}
-          teams={[]} // Pasar equipos aquí
-          seasons={[]} // Pasar temporadas aquí
         />
       )}
     </>

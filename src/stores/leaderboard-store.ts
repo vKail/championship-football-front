@@ -1,11 +1,11 @@
-import { ILeaderboard } from "@/app/dashboard/leaderboard/interface/leaderboard.interface";
-import { createLeaderboard, deleteLeaderboard, getAllLeaderboard, getLeaderboardById, updateLeaderboard } from "@/app/dashboard/leaderboard/service/leaderboardService";
+import { ILeaderboard, ILeaderboardResponse } from "@/app/dashboard/leaderboard/interface/leaderboard.interface";
+import { createLeaderboard, deleteLeaderboard, getAllLeaderboard, getLeaderboardById, getLeaderboardsBySeasonAndCategory, updateLeaderboard } from "@/app/dashboard/leaderboard/service/leaderboardService";
 import { create } from "zustand";
 
 
 interface LeaderboardaState{
-    leaderboards: ILeaderboard[] | null;
-    leaderboard: ILeaderboard | null;
+    leaderboards: ILeaderboardResponse[] | null;
+    leaderboard: ILeaderboardResponse | null;
     loading: boolean;
     error: string | null;
     fetchAllLeaderboards: () => Promise<boolean>;
@@ -13,6 +13,7 @@ interface LeaderboardaState{
     addLeaderboard: (leaderboard: ILeaderboard) => Promise<boolean>;
     modifyLeaderboard: (leaderboard: ILeaderboard) => Promise<boolean>;
     removeLeaderboard: (id: number) => Promise<boolean>;
+    findLeaderboardsBySeasonAndCategory: (seasonId: number, categoryId: number) => Promise<boolean>;
     clearError: () => void;
     clearLeaderboard: () => void;
 }
@@ -68,7 +69,7 @@ export const useLeaderboardaStore = create<LeaderboardaState>((set, get) => ({
             set({ loading: true, error: null });
             const response = await createLeaderboard(leaderboard);
             
-            if (response?.status === 201) {
+            if (response?.status === 200) {
                 const currentLeaderboards = get().leaderboards || [];
                 set({ leaderboards: [...currentLeaderboards, response.data], leaderboard: response.data });
                 return true;
@@ -91,7 +92,7 @@ export const useLeaderboardaStore = create<LeaderboardaState>((set, get) => ({
             
             if (response?.status === 200) {
                 const currentLeaderboards = get().leaderboards || [];
-                const updatedLeaderboards = currentLeaderboards.map(l => l.leaderboard_id === leaderboard.leaderboard_id ? leaderboard : l);
+                const updatedLeaderboards = currentLeaderboards.map(l => l.leaderboardId === leaderboard.leaderboardId ? { ...l, ...leaderboard } : l);
                 set({ 
                     leaderboards: updatedLeaderboards, 
                     leaderboard : response.data });
@@ -116,8 +117,8 @@ export const useLeaderboardaStore = create<LeaderboardaState>((set, get) => ({
             if (response?.status === 200) {
                 const currentLeaderboards = get().leaderboards || [];
                 set({ 
-                    leaderboards: currentLeaderboards.filter(l => l.leaderboard_id !== id.toString()),
-                    leaderboard: get().leaderboard?.leaderboard_id === id.toString() ? null : get().leaderboard
+                    leaderboards: currentLeaderboards.filter(l => l.leaderboardId !== id),
+                    leaderboard: get().leaderboard?.leaderboardId === id ? null : get().leaderboard
                  });
                 return true;
             }
@@ -132,6 +133,26 @@ export const useLeaderboardaStore = create<LeaderboardaState>((set, get) => ({
         }
     },
 
+    findLeaderboardsBySeasonAndCategory: async (seasonId: number, categoryId: number) => {
+        try {
+            set({ loading: true, error: null });
+            const response = await getLeaderboardsBySeasonAndCategory(seasonId, categoryId);
+            
+            if (response?.status === 200) {
+                set({ leaderboards: response.data });
+                return true;
+            }
+            
+            set({ error: 'No se pudieron obtener los lideres' });
+            return false;
+        } catch (error) {
+            set({ error: 'Error al obtener lideres' });
+            return false;
+        } finally {
+            set({ loading: false });
+        }
+    },
+    
     clearError: () => set({ error: null }),
     clearLeaderboard: () => set({ leaderboard: null })
 }));
