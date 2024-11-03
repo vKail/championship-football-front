@@ -15,7 +15,8 @@ const useLeaderboard = () => {
         modifyLeaderboard,
         removeLeaderboard,
         clearError,
-        clearLeaderboard
+        clearLeaderboard, 
+        findLeaderboardsBySeasonAndCategory
     } = useLeaderboardaStore();
 
     const handleGetAllLeaderboards = async () => {
@@ -86,6 +87,29 @@ const useLeaderboard = () => {
         return false;
     }
 
+    const handleFindLeaderboardsBySeasonAndCategory = async (seasonId : number, categoryId : number) => {  
+        const success = await findLeaderboardsBySeasonAndCategory(seasonId, categoryId);
+        if (success) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Leaderboard encontrado',
+                text: 'El leaderboard se ha encontrado correctamente',
+            });
+            return true;
+        }
+
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error || 'No se pudo encontrar la tabla'
+        });
+        return false;
+
+
+    }
+
+
+
     return {
         leaderboards,
         leaderboard,
@@ -96,6 +120,7 @@ const useLeaderboard = () => {
         handleUpdateLeaderboard,
         handleRemoveLeaderboard,
         fetchLeaderboardById,
+        handleFindLeaderboardsBySeasonAndCategory,
         clearError,
         clearLeaderboard
     }
