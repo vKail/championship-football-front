@@ -3,9 +3,11 @@ import { useState } from "react";
 import { IGoal } from "./interface/goal.interface";
 import GoalForm from "./components/form/goalForm";
 import GoalTable from "./components/table/goalTable";
+import useGoal from "./hooks/useGoal";
 
 
 export default function GoalPage() {
+  const {handleCreateGoal} = useGoal();
   const [goals, setGoals] = useState<IGoal[]>([]);
   const [selectedGoal, setSelectedGoal] = useState<IGoal | null>(null);
   const [isEdit, setIsEdit] = useState(false);
@@ -24,15 +26,7 @@ export default function GoalPage() {
   };
 
   const handleSaveGoal = (goal: IGoal) => {
-    if (isEdit && selectedGoal) {
-      setGoals((prev) =>
-        prev.map((g) =>
-          g.goal_id === selectedGoal.goal_id ? goal : g
-        )
-      );
-    } else {
-      setGoals((prev) => [...prev, goal]);
-    }
+    handleCreateGoal(goal);
     handleCloseForm();
   };
 

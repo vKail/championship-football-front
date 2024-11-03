@@ -98,3 +98,5 @@ const useGoal = () => {
         clearGoal
     };
 }
+
+export default useGoal;

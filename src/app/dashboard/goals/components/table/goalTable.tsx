@@ -1,29 +1,23 @@
 'use client'
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Tooltip } from "@nextui-org/react";
 import { EditIcon } from "@/app/ui/EditIcon";
 import { DeleteIcon } from "@/app/ui/DeleteIcon";
-import { IGoal } from "../../interface/goal.interface";
+import { IGoal, IGoalsResponse } from "../../interface/goal.interface";
 import GoalForm from "../form/goalForm";
-
-
-// Datos iniciales de goles
-const initialGoals: IGoal[] = [
-  {
-    goal_id: "G001",
-    player: { player_id: "P001", firstname: "Carlos", lastname: "Sánchez", dni: "12345678", bib: "10", team: { team_id: "T001", name: "Team A", category: { category_id: "C001", name: "Category A" } } },
-    match: { match_id: "M001", date: "2024-10-01", team_1: "Team A", team_2: "Team B", result: "2-1", status: "Finished", season: { season_id: "S001", season_name: "Season 2024" }, category: { category_id: "C001", name: "Category A" } },
-    minute: 45,
-    team: { team_id: "T001", name: "Team A",  category: { category_id: "C001", name: "Category A" } },
-  },
-  // Más goles...
-];
+import useGoal from "../../hooks/useGoal";
+import useMatch from "@/app/dashboard/matches/hooks/useMatch";
 
 export default function GoalTable() {
-  const [goals, setGoals] = useState<IGoal[]>(initialGoals);
+  const {fetchMatchById} = useMatch();
+  const {goals, handleGetAllGoals, handleUpdateGoal, handleRemoveGoal} = useGoal();
   const [selectedGoal, setSelectedGoal] = useState<IGoal | null>(null);
   const [isEdit, setIsEdit] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    handleGetAllGoals();
+  }, []);
 
   const handleEdit = (goal: IGoal) => {
     setSelectedGoal(goal);
@@ -33,22 +27,18 @@ export default function GoalTable() {
 
   const handleSaveGoal = (goal: IGoal) => {
     if (isEdit) {
-      setGoals((prevGoals) =>
-        prevGoals.map((g) => (g.goal_id === goal.goal_id ? goal : g))
-      );
-    } else {
-      setGoals((prevGoals) => [...prevGoals, goal]);
-    }
+      handleUpdateGoal(goal);
+    } 
     setIsOpen(false);
     setSelectedGoal(null);
     setIsEdit(false);
   };
 
-  const handleDelete = (goal_id: string) => {
-    setGoals((prevGoals) => prevGoals.filter((g) => g.goal_id !== goal_id));
+  const handleDelete = (goalId : number) => {
+    handleRemoveGoal(goalId ?? 0);
   };
 
-  const renderCell = (goal: IGoal, columnKey: keyof IGoal | "actions") => {
+  const renderCell = (goal: IGoalsResponse, columnKey: keyof IGoalsResponse | "actions") => {
     const cellValue = goal[columnKey as keyof IGoal];
 
     switch (columnKey) {
@@ -61,18 +51,12 @@ export default function GoalTable() {
               </span>
             </Tooltip>
             <Tooltip content="Delete goal">
-              <span onClick={() => handleDelete(goal.goal_id)}>
+              <span onClick={() => handleDelete(goal.goalId ?? 0)}>
                 <DeleteIcon />
               </span>
             </Tooltip>
           </div>
         );
-        case "player":
-            return goal.player ? `${goal.player.firstname} ${goal.player.lastname}` : "Sin jugador";
-        case "match":
-            return goal.match ? `${goal.match.team_1} vs ${goal.match.team_2}` : "Sin partido";
-        case "team":
-          return goal ? goal.team.name : "Sin equipo";
       default:
         return typeof cellValue === "object" ? JSON.stringify(cellValue) : cellValue;
     }
@@ -82,11 +66,11 @@ export default function GoalTable() {
     <>
       <Table aria-label="Goals Table">
         <TableHeader columns={[
-          { uid: "goal_id", name: "Goal ID" },
-          { uid: "player", name: "Player" },
-          { uid: "match", name: "Match" },
+          { uid: "goalId", name: "Goal ID" },
+          { uid: "playerName", name: "Player" },
+          { uid: "matchId", name: "Match" },
           { uid: "minute", name: "Minute" },
-          { uid: "team", name: "Team" },
+          { uid: "teamName", name: "Team" },
           { uid: "actions", name: "Actions" },
         ]}>
           {(column) => (
@@ -95,9 +79,9 @@ export default function GoalTable() {
             </TableColumn>
           )}
         </TableHeader>
-        <TableBody items={goals}>
+        <TableBody items={goals ?? []}>
           {(item) => (
-            <TableRow key={item.goal_id}>
+            <TableRow key={item.goalId ?? 0}>
               {(columnKey) => (
                 <TableCell>
                   {renderCell(item, columnKey as keyof IGoal | "actions")}

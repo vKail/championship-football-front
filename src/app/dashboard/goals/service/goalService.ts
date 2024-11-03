@@ -11,7 +11,7 @@ export const createGoal = async (goal : IGoal) => {
 }
 
 export const updateGoal = async (goal : IGoal) => {
-    return await championshipApi.put(`/goals/${goal.goal_id}`, goal)
+    return await championshipApi.put(`/goals/${goal.goalId}`, goal)
 }
 
 export const deleteGoal = async (id : number) => {

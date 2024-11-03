@@ -4,8 +4,10 @@ import { useState } from "react";
 import { IMatch } from "./interface/matches.interface";
 import MatchTable from "./components/table/matchTable";
 import MatchForm from "./components/form/matchForm";
+import useMatch from "./hooks/useMatch";
 
 export default function Page() {
+  const {handleCreateMatch} = useMatch();
   const [matches, setMatches] = useState<IMatch[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<IMatch | null>(null);
   const [isEdit, setIsEdit] = useState(false);
@@ -24,15 +26,7 @@ export default function Page() {
   };
 
   const handleSaveMatch = (match: IMatch) => {
-    if (isEdit && selectedMatch) {
-      setMatches((prev) =>
-        prev.map((m) =>
-          m.match_id === selectedMatch.match_id ? match : m
-        )
-      );
-    } else {
-      setMatches((prev) => [...prev, match]);
-    }
+    handleCreateMatch(match);
     handleCloseForm();
   };
 
@@ -61,7 +55,8 @@ export default function Page() {
           match={selectedMatch}
           isEdit={isEdit}
           onSave={handleSaveMatch}
-          onClose={handleCloseForm} teams={[]} seasons={[]}        />
+          onClose={handleCloseForm} 
+        />
       )}
     </div>
   );

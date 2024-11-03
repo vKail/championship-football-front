@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, Input } from "@nextui-org/react";
 import { ISeason } from "../../interface/season.interface";
-import useSeason from "../../hooks/useSeason";
 
 interface SeasonFormProps {
   season: ISeason | null;
@@ -11,7 +10,6 @@ interface SeasonFormProps {
 }
 
 export default function SeasonForm({ season, isEdit, onSave, onClose }: SeasonFormProps) {
-  const {handleCreateSeason} = useSeason();
   const [formData, setFormData] = useState<ISeason>({ seasonName: "" });
 
   useEffect(() => {
@@ -29,9 +27,6 @@ export default function SeasonForm({ season, isEdit, onSave, onClose }: SeasonFo
 
   const handleSubmit = () => {
     onSave(formData);
-    if (!isEdit) {
-      handleCreateSeason(formData);
-    }
   };
 
   return (

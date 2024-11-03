@@ -15,8 +15,9 @@ import {
 } from "@nextui-org/react";
 import { IPlayer } from "../../interface/player.interface";
 import useTeams from "@/app/dashboard/teams/hooks/useTeams";
-import { parseDate } from "@internationalized/date";
+import { parseDate, CalendarDate } from "@internationalized/date";
 import useCategory from "@/app/dashboard/categories/hooks/useCategry";
+import usePlayers from "../../hooks/usePlayer";
 
 interface PlayerFormProps {
   player: IPlayer | null;
@@ -31,8 +32,8 @@ export default function PlayerForm({
   onSave,
   onClose,
 }: PlayerFormProps) {
-  const { teams, handleGetAllTeams, fetchTeamById } = useTeams();
-  const {categories, handleGetAllCategories, fetchCategoryById} = useCategory();
+  const { teams, handleGetAllTeams } = useTeams();
+  const { categories, handleGetAllCategories } = useCategory();
   const [formData, setFormData] = useState<IPlayer>({
     dni: "",
     firstname: "",
@@ -43,9 +44,24 @@ export default function PlayerForm({
     categoryId: 0,
   });
 
+  const [selectedDate, setSelectedDate] = useState<CalendarDate | null>(null);
+
   useEffect(() => {
     if (isEdit && player) {
-      setFormData(player);
+      setFormData({
+        ...player,
+        birthdate: player.birthdate,
+        teamId: player.teamId ?? 0,
+        categoryId: player.categoryId ?? 0,
+      });
+      if (player.birthdate) {
+        try {
+          setSelectedDate(parseDate(player.birthdate.toString()));
+        } catch (e) {
+          console.error("Error parsing date:", e);
+          setSelectedDate(null);
+        }
+      }
     } else {
       setFormData({
         dni: "",
@@ -56,6 +72,7 @@ export default function PlayerForm({
         teamId: 0,
         categoryId: 0,
       });
+      setSelectedDate(null);
     }
   }, [isEdit, player]);
 
@@ -64,53 +81,56 @@ export default function PlayerForm({
     handleGetAllCategories();
   }, []);
 
-  useEffect(() => {
-    if (isEdit && player) {
-      setFormData({
-        ...player,
-        birthdate: player.birthdate ? player.birthdate.toString() : null,
-      });
-    } else {
-      setFormData({
-        dni: "",
-        firstname: "",
-        lastname: "",
-        bib: "",
-        birthdate: null,
-        teamId: 0,
-        categoryId: 0,
-      });
-    }
-  }, [isEdit, player]);
-
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { value } = e.target;
+  const handleTeamChange = (value: string) => {
     setFormData({
       ...formData,
       teamId: parseInt(value, 10),
+    });
+  };
+
+  const handleCategoryChange = (value: string) => {
+    setFormData({
+      ...formData,
       categoryId: parseInt(value, 10),
     });
   };
+
   const handleDateChange = (date: DateValue | null) => {
+    setSelectedDate(date as CalendarDate);
+    
+    if (!date) {
+      setFormData({
+        ...formData,
+        birthdate: null,
+      });
+      return;
+    }
+
+    const year = date.year;
+    const month = String(date.month).padStart(2, "0");
+    const day = String(date.day).padStart(2, "0");
+    const formattedDate = `${year}-${month}-${day}`;
+
     setFormData({
       ...formData,
-      birthdate: date ? date.toString() : null,
+      birthdate: formattedDate,
     });
   };
 
   const handleSubmit = () => {
-    const playerData = {
-      ...formData,
-      birthdate: formData.birthdate,
-    };
+    onSave(formData);
+   
+  };
 
-    onSave(playerData);
-    console.log(playerData);
+  const isValidSelection = (id: number, collection: any[]) => {
+    return collection?.some(item => 
+      (item.teamId === id || item.categoryId === id)
+    ) ?? false;
   };
 
   return (
@@ -152,38 +172,45 @@ export default function PlayerForm({
               />
               <DatePicker
                 label="Fecha de Nacimiento"
-                name="birthdate"
-                defaultValue={
-                  formData.birthdate
-                    ? parseDate(formData.birthdate.toString())
-                    : undefined
-                } 
-                onChange={(newDate) => handleDateChange(newDate)}
+                value={selectedDate}
+                onChange={handleDateChange}
                 isRequired
               />
               <Select
                 label="Equipo"
-                name="teamId"
-                value={formData.teamId}
-                onChange={handleSelectChange}
+                selectedKeys={
+                  isValidSelection(formData.teamId, teams ?? []) 
+                    ? new Set([formData.teamId.toString()]) 
+                    : new Set([])
+                }
+                onSelectionChange={(keys) => handleTeamChange(Array.from(keys)[0] as string)}
               >
-                {(teams ?? []).map((team) => (
-                  <SelectItem key={team.teamId ?? 0} value={team.teamId}>
+                {teams?.map((team) => (
+                  <SelectItem
+                    key={team.teamId?.toString() ?? ""}
+                    value={team.teamId}
+                  >
                     {team.name}
                   </SelectItem>
-                ))}
+                )) ?? []}
               </Select>
               <Select
                 label="Categoria"
-                name="categoryId"
-                value={formData.categoryId}
-                onChange={handleSelectChange}
+                selectedKeys={
+                  isValidSelection(formData.categoryId, categories ?? [])
+                    ? new Set([formData.categoryId.toString()])
+                    : new Set([])
+                }
+                onSelectionChange={(keys) => handleCategoryChange(Array.from(keys)[0] as string)}
               >
-                {(categories ?? []).map((category) => (
-                  <SelectItem key={category.categoryId ?? 0} value={category.categoryId}>
+                {categories?.map((category) => (
+                  <SelectItem
+                    key={category.categoryId?.toString() ?? ""}
+                    value={category.categoryId}
+                  >
                     {category.categoryName}
                   </SelectItem>
-                ))}
+                )) ?? []}
               </Select>
             </ModalBody>
             <ModalFooter>

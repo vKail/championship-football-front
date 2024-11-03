@@ -1,29 +1,14 @@
 'use client'
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Tooltip } from "@nextui-org/react";
 import { EditIcon } from "@/app/ui/EditIcon";
 import { DeleteIcon } from "@/app/ui/DeleteIcon";
-import { IMatch } from "../../interface/matches.interface";
+import { IMatch, IMatchResponse } from "../../interface/matches.interface";
 import MatchForm from "../form/matchForm";
-
-
-// Datos iniciales de partidos
-const initialMatches: IMatch[] = [
-  {
-    match_id: "M001",
-    date: "2024-10-22",
-    team_1: "Team A",
-    team_2: "Team B",
-    result: "1-0",
-    status: "Finalizado",
-    season: { season_id: "S001", season_name: "Temporada 2024" },
-    category: { category_id: "C001", name: "Category A" },
-  },
-  // ... más partidos
-];
+import useMatch from "../../hooks/useMatch";
 
 export default function MatchTable() {
-  const [matches, setMatches] = useState<IMatch[]>(initialMatches);
+  const {matches, handleGetAllMatches, handleUpdateMatch, handleRemoveMatch} = useMatch();
   const [selectedMatch, setSelectedMatch] = useState<IMatch | null>(null);
   const [isEdit, setIsEdit] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -36,20 +21,22 @@ export default function MatchTable() {
 
   const handleSaveMatch = (match: IMatch) => {
     if (isEdit) {
-      setMatches((prev) => prev.map((m) => (m.match_id === match.match_id ? match : m)));
-    } else {
-      setMatches((prev) => [...prev, match]);
+      handleUpdateMatch(match);
     }
     setIsOpen(false);
     setSelectedMatch(null);
     setIsEdit(false);
   };
 
-  const handleDelete = (match_id: string) => {
-    setMatches((prev) => prev.filter((m) => m.match_id !== match_id));
+  const handleDelete = (matchId: number) => {
+    handleRemoveMatch(matchId);
   };
 
-  const renderCell = (match: IMatch, columnKey: keyof IMatch | "actions") => {
+  useEffect(() => {
+    handleGetAllMatches();
+  }, []);
+
+  const renderCell = (match: IMatchResponse, columnKey: keyof IMatchResponse | "actions") => {
     const cellValue = match[columnKey as keyof IMatch];
     if (columnKey === "actions") {
       return (
@@ -60,7 +47,7 @@ export default function MatchTable() {
             </span>
           </Tooltip>
           <Tooltip content="Delete match">
-            <span onClick={() => handleDelete(match.match_id)}>
+            <span onClick={() => handleDelete(match.matchId ?? 0)}>
               <DeleteIcon />
             </span>
           </Tooltip>
@@ -77,10 +64,10 @@ export default function MatchTable() {
     <>
       <Table aria-label="Match table">
         <TableHeader columns={[
-          { uid: "match_id", name: "Match ID" },
-          { uid: "date", name: "Date" },
-          { uid: "team_1", name: "Equipo 1" },
-          { uid: "team_2", name: "Equipo 2" },
+          { uid: "matchId", name: "Match ID" },
+          { uid: "matchDate", name: "Fecha" },
+          { uid: "homeTeamName", name: "Equipo Local" },
+          { uid: "awayTeamName", name: "Equipo Visitante" },
           { uid: "result", name: "Resultado" },
           { uid: "status", name: "Estado" },
           { uid: "actions", name: "Acciones" },
@@ -91,9 +78,9 @@ export default function MatchTable() {
             </TableColumn>
           )}
         </TableHeader>
-        <TableBody items={matches}>
+        <TableBody items={matches ?? []}>
           {(item) => (
-            <TableRow key={item.match_id}>
+            <TableRow key={item.matchId}>
               {(columnKey) => (
                 <TableCell>
                   {renderCell(item, columnKey as keyof IMatch | "actions")}
@@ -114,8 +101,7 @@ export default function MatchTable() {
             setSelectedMatch(null);
             setIsEdit(false);
           }}
-          teams={[]} // Pasar equipos aquí
-          seasons={[]} // Pasar temporadas aquí
+          
         />
       )}
     </>

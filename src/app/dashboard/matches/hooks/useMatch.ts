@@ -96,7 +96,8 @@ const useMatch = () => {
         handleUpdateMatch,
         handleRemoveMatch,
         clearError,
-        clearMatch
+        clearMatch,
+        fetchMatchById
     };
 }
 
