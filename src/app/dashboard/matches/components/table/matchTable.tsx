@@ -1,11 +1,31 @@
-'use client'
 import { use, useEffect, useState } from "react";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Tooltip } from "@nextui-org/react";
+import { 
+  Table, 
+  TableHeader, 
+  TableColumn, 
+  TableBody, 
+  TableRow, 
+  TableCell, 
+  Tooltip,
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+  Button 
+} from "@nextui-org/react";
 import { EditIcon } from "@/app/ui/EditIcon";
 import { DeleteIcon } from "@/app/ui/DeleteIcon";
+import { EyeIcon } from "@/app/ui/EyeIcon";
 import { IMatch, IMatchResponse } from "../../interface/matches.interface";
 import MatchForm from "../form/matchForm";
 import useMatch from "../../hooks/useMatch";
+
+const STATUS_OPTIONS = [
+  { key: "Pendiente", label: "Pendiente" },
+  { key: "En_curso", label: "En Curso" },
+  { key: "Finalizado", label: "Finalizado" },
+  { key: "Cancelado", label: "Cancelado" }
+];
 
 export default function MatchTable() {
   const {matches, handleGetAllMatches, handleUpdateMatch, handleRemoveMatch} = useMatch();
@@ -19,9 +39,9 @@ export default function MatchTable() {
     setIsOpen(true);
   };
 
-  const handleSaveMatch = (match: IMatch) => {
+  const handleSaveMatch = () => {
     if (isEdit) {
-      handleUpdateMatch(match);
+      // Lógica de guardado
     }
     setIsOpen(false);
     setSelectedMatch(null);
@@ -32,32 +52,128 @@ export default function MatchTable() {
     handleRemoveMatch(matchId);
   };
 
+  const handleEditStatus = async (matchId: number, status: string) => {
+    try {
+      // Prevenir que se ejecute con valores undefined
+      if (!matchId || !status) return;
+      
+      // Asegurarse de que el status es válido
+      const validStatus = STATUS_OPTIONS.find(opt => opt.key === status);
+      if (!validStatus) return;
+
+      // Encontrar el match actual para mantener todos los datos
+      const currentMatch = matches?.find(m => m.matchId === matchId);
+      if (!currentMatch) return;
+
+      // Crear el objeto de actualización manteniendo todos los datos existentes
+      const updateData = {
+        ...currentMatch,
+        status: status
+      };
+
+      await handleUpdateMatch(matchId, updateData);
+      
+      // Refrescar la tabla después de la actualización
+      handleGetAllMatches();
+    } catch (error) {
+      console.error('Error updating match status:', error);
+      // Aquí podrías agregar alguna notificación de error para el usuario
+    }
+  };
+
   useEffect(() => {
     handleGetAllMatches();
   }, []);
 
-  const renderCell = (match: IMatchResponse, columnKey: keyof IMatchResponse | "actions") => {
+  const formatDate = (date: Date | string): string => {
+    if (!date) return '';
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const renderCell = (match: IMatchResponse, columnKey: keyof IMatchResponse | "actions"): React.ReactNode => {
     const cellValue = match[columnKey as keyof IMatch];
-    if (columnKey === "actions") {
+    
+    if (columnKey === "actions" && match.status !== "Finalizado") {
       return (
-        <div className="flex gap-2">
-          <Tooltip content="Edit match">
-            <span onClick={() => handleEdit(match)}>
+        <div className="flex gap-2 items-center">
+          <Tooltip content="Editar">
+            <span 
+              className="cursor-pointer" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleEdit(match);
+              }}
+            >
               <EditIcon />
             </span>
           </Tooltip>
-          <Tooltip content="Delete match">
-            <span onClick={() => handleDelete(match.matchId ?? 0)}>
+          <Tooltip content="Eliminar partido">
+            <span 
+              className="cursor-pointer" 
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDelete(match.matchId ?? 0);
+              }}
+            >
               <DeleteIcon />
             </span>
+          </Tooltip>
+          <Tooltip content="Cambiar estado">
+            <Dropdown>
+              <DropdownTrigger>
+                <Button 
+                  size="sm" 
+                  variant="light"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <EyeIcon />
+                </Button>
+              </DropdownTrigger>
+              <DropdownMenu 
+                aria-label="Status options"
+                onAction={(key) => {
+                  if (typeof key === 'string') {
+                    handleEditStatus(match.matchId ?? 0, key);
+                  }
+                }}
+              >
+                {STATUS_OPTIONS.map((status) => (
+                  <DropdownItem 
+                    key={status.key}
+                    className={match.status === status.key ? "text-primary" : ""}
+                  >
+                    {status.label}
+                  </DropdownItem>
+                ))}
+              </DropdownMenu>
+            </Dropdown>
           </Tooltip>
         </div>
       );
     }
+    
+    if (columnKey === "status") {
+      return STATUS_OPTIONS.find(status => status.key === cellValue)?.label || cellValue?.toString() || '';
+    }
+    
+    if (columnKey === "matchDate") {
+      return formatDate(cellValue as Date);
+    }
+    
     if (typeof cellValue === 'object' && cellValue !== null) {
       return JSON.stringify(cellValue);
     }
-    return cellValue as React.ReactNode;
+    
+    return cellValue?.toString() ?? '';
   };
 
   return (
@@ -95,13 +211,12 @@ export default function MatchTable() {
         <MatchForm
           match={selectedMatch}
           isEdit={isEdit}
-          onSave={handleSaveMatch}
+          onSave={handleEdit}
           onClose={() => {
             setIsOpen(false);
             setSelectedMatch(null);
             setIsEdit(false);
           }}
-          
         />
       )}
     </>

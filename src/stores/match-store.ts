@@ -12,7 +12,7 @@ interface MatchState {
     fetchAllMatches: () => Promise<boolean>;
     fetchMatchById: (id: number) => Promise<boolean>;
     addMatch: (match: IMatch) => Promise<boolean>;
-    modifyMatch: (match: IMatch) => Promise<boolean>;
+    modifyMatch: (matchId: number,updatedData : Partial<IMatch>) => Promise<boolean>;
     removeMatch: (id: number) => Promise<boolean>;
     clearError: () => void;
     clearMatch: () => void;
@@ -85,18 +85,18 @@ export const useMatchStore = create<MatchState>((set, get) => ({
         }
     },
 
-    modifyMatch: async (match: IMatch) => {
+    modifyMatch: async (matchId: number,updatedData : Partial<IMatch>) => {
         try {
             set({ loading: true, error: '' });
-            const response = await updateMatch(match);
+            const response = await updateMatch(matchId, updatedData);
             
             if (response?.status === 200) {
                 const currentMatches = get().matches || [];
-                const updatedMatches = currentMatches.map(m => m.matchId === match.matchId ? { ...m, ...match } : m);
-                set({ 
-                    matches: updatedMatches, 
-                    match: response.data 
-                });
+                const match = currentMatches.find(m => m.matchId === matchId);
+                if (match) {
+                    match.status = updatedData.status || match.status;
+                }
+                set({ matches: currentMatches, match: match });
                 return true;
             }
             

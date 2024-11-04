@@ -71,10 +71,10 @@ export default function LeaderboardTable() {
           { uid: "category", name: "Categoría" },
           { uid: "teamName", name: "Equipo" },
           { uid: "points", name: "Puntos" },
-            { uid: "matches_won", name: "Partidos Ganados" },
-            { uid: "matches_draw", name: "Partidos Empatados" },
-            { uid: "matches_lost", name: "Partidos Perdidos" },
-            { uid: "goals_scored", name: "Goles a favor" },
+            { uid: "matchesWon", name: "Partidos Ganados" },
+            { uid: "matchesDrawn", name: "Partidos Empatados" },
+            { uid: "matchesLost", name: "Partidos Perdidos" },
+            { uid: "goalsScored", name: "Goles a favor" },
             { uid: "actions", name: "Acciones" },
         ]}>
           {(column) => (
