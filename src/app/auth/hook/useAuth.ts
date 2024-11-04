@@ -19,6 +19,7 @@ const useAuth = () => {
             if(response && response.status === 200){
                 login(response.data.token, response.data.user);
                 localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', username);
                 Swal.fire({
                     icon: 'success',
                     title: 'Bienvenido',
@@ -39,6 +40,7 @@ const useAuth = () => {
     const handlerLogout = () => {
         logout();
         localStorage.removeItem('token');
+        router.push('/login');
     }
 
     return { user, handlerLogin, handlerLogout }
