@@ -21,21 +21,32 @@ interface TeamFormProps {
   onClose: () => void;
 }
 
+const validationRules = {
+  name: {
+    regex: /^[A-Za-z\s]+$/,
+    message: "El nombre solo puede contener letras y espacios.",
+  },
+  categoryIds: {
+    check: (value: number[]) => value.length > 0,
+    message: "Debe seleccionar al menos una categoría.",
+  },
+};
+
 export default function TeamForm({
   team,
   isEdit,
   onSave,
   onClose,
 }: TeamFormProps) {
-  const { categories, handleGetAllCategories, handleCreateCategory } = useCategory();
+  const { categories, handleGetAllCategories } = useCategory();
   const [formData, setFormData] = useState<ITeam>({
     name: "",
     playerIds: [],
     categoryIds: [],
   });
-  
-  // Estado para mantener las keys seleccionadas en el formato que espera NextUI
+
   const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set());
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
     if (isEdit && team) {
@@ -44,10 +55,7 @@ export default function TeamForm({
         categoryIds: team.categoryIds ?? [],
       });
       
-      // Convertir los categoryIds a strings y crear un Set para el Select
-      const selectedKeys = new Set(
-        (team.categoryIds ?? []).map(id => id.toString())
-      );
+      const selectedKeys = new Set((team.categoryIds ?? []).map(id => id.toString()));
       setSelectedCategories(selectedKeys);
     } else {
       setFormData({
@@ -63,26 +71,59 @@ export default function TeamForm({
     handleGetAllCategories();
   }, []);
 
+  const validateField = (name: keyof ITeam, value: string | number[]) => {
+    const rule = validationRules[name as keyof typeof validationRules];
+    if (rule) {
+      const { message } = rule;
+      if ("regex" in rule && !rule.regex.test(value as string)) {
+        return message;
+      }
+      if ("check" in rule && !rule.check(value as number[])) {
+        return message;
+      }
+    }
+    return undefined;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+
+    const error = validateField(name as keyof ITeam, value);
+    setErrors({ ...errors, [name]: error ?? "" });
   };
 
   const handleSelectChange = (keys: Set<React.Key>) => {
     setSelectedCategories(keys as Set<string>);
-    
+
     const selectedCategoryIds = Array.from(keys)
-      .map(key => Number(key))
-      .filter(id => !isNaN(id));
+      .map((key) => Number(key))
+      .filter((id) => !isNaN(id));
 
     setFormData({
       ...formData,
       categoryIds: selectedCategoryIds,
     });
+
+    const error = validateField("categoryIds", selectedCategoryIds);
+    setErrors({ ...errors, categoryIds: error ?? "" });
   };
 
   const handleSubmit = () => {
-    onSave(formData);
+    const newErrors = Object.keys(formData).reduce((acc, key) => {
+      const value = formData[key as keyof ITeam];
+      if (value !== undefined) {
+        const error = validateField(key as keyof ITeam, Array.isArray(value) || typeof value === 'string' ? value : value.toString());
+        if (error) acc[key] = error;
+      }
+      return acc;
+    }, {} as { [key: string]: string });
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      onSave(formData);
+    }
   };
 
   return (
@@ -90,29 +131,28 @@ export default function TeamForm({
       <ModalContent>
         {() => (
           <>
-            <ModalHeader>
-              {isEdit ? "Editar Equipo" : "Crear Equipo"}
-            </ModalHeader>
+            <ModalHeader>{isEdit ? "Editar Equipo" : "Crear Equipo"}</ModalHeader>
             <ModalBody>
               <Input
                 label="Nombre del Equipo"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
+                isInvalid={!!errors.name}
+                color={errors.name ? "danger" : "default"}
+                errorMessage={errors.name}
+                isRequired
               />
               <Select
                 selectionMode="multiple"
                 label="Categoría"
                 selectedKeys={selectedCategories}
-                onSelectionChange={(keys) =>
-                  handleSelectChange(keys as Set<React.Key>)
-                }
+                onSelectionChange={(keys) => handleSelectChange(keys as Set<React.Key>)}
+                isInvalid={!!errors.categoryIds}
+                errorMessage={errors.categoryIds}
               >
                 {(categories ?? []).map((category) => (
-                  <SelectItem
-                    key={category.categoryId?.toString() ?? ""}
-                    value={category.categoryId ?? ""}
-                  >
+                  <SelectItem key={category.categoryId?.toString() ?? ""} value={category.categoryId ?? ""}>
                     {category.categoryName}
                   </SelectItem>
                 ))}

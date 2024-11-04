@@ -25,6 +25,47 @@ interface LeaderboardFormProps {
   onClose: () => void;
 }
 
+const leaderboardValidationRules = {
+  teamId: {
+    check: (value: number) => value > 0,
+    message: "Debe seleccionar un equipo.",
+  },
+  seasonId: {
+    check: (value: number) => value > 0,
+    message: "Debe seleccionar una temporada.",
+  },
+  categoryId: {
+    check: (value: number) => value > 0,
+    message: "Debe seleccionar una categoría.",
+  },
+  points: {
+    regex: /^\d+$/,
+    check: (value: number) => value >= 0,
+    message: "Los puntos deben ser un número positivo.",
+  },
+  matchesWon: {
+    regex: /^\d+$/,
+    check: (value: number) => value >= 0,
+    message: "Los partidos ganados deben ser un número positivo.",
+  },
+  matchesDrawn: {
+    regex: /^\d+$/,
+    check: (value: number) => value >= 0,
+    message: "Los partidos empatados deben ser un número positivo.",
+  },
+  matchesLost: {
+    regex: /^\d+$/,
+    check: (value: number) => value >= 0,
+    message: "Los partidos perdidos deben ser un número positivo.",
+  },
+  goalsScored: {
+    regex: /^\d+$/,
+    check: (value: number) => value >= 0,
+    message: "Los goles anotados deben ser un número positivo.",
+  }
+};
+
+
 export default function LeaderboardForm({
   leaderboard,
   isEdit,
@@ -34,6 +75,7 @@ export default function LeaderboardForm({
   const { handleGetAllTeams, teams } = useTeams();
   const { seasons, handleGetAllSeasons } = useSeason();
   const { categories, handleGetAllCategories } = useCategory();
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [formData, setFormData] = useState<ILeaderboard>({
     teamId: 0,
     seasonId: 0,
@@ -48,38 +90,61 @@ export default function LeaderboardForm({
   useEffect(() => {
     if (isEdit && leaderboard) {
       setFormData(leaderboard);
-    } else {
-      setFormData({
-        teamId: 0,
-        seasonId: 0,
-        categoryId: 0,
-        points: 0,
-        matchesWon: 0,
-        matchesDrawn: 0,
-        matchesLost: 0,
-        goalsScored: 0,
-      });
     }
-  }, [isEdit, leaderboard]);
-
-  useEffect(() => {
     handleGetAllTeams();
     handleGetAllSeasons();
     handleGetAllCategories();
-  }, []);
+  }, [isEdit, leaderboard]);
+
+  const validateField = (name: keyof ILeaderboard, value: any) => {
+    const rule = leaderboardValidationRules[name as keyof typeof leaderboardValidationRules];
+    if (rule) {
+      if ('regex' in rule && !rule.regex.test(value?.toString())) {
+        return rule.message;
+      }
+      if ('check' in rule && !rule.check(value)) {
+        return rule.message;
+      }
+    }
+    return undefined;
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const numValue = parseInt(value) || 0;
+    setFormData({ ...formData, [name]: numValue });
+    
+    const error = validateField(name as keyof ILeaderboard, numValue);
+    setErrors({ ...errors, [name]: error ?? '' });
   };
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: parseInt(value) });
+  const handleSelectChange = (fieldName: string, value: string) => {
+    const numValue = parseInt(value, 10);
+    setFormData({ ...formData, [fieldName]: numValue });
+    
+    const error = validateField(fieldName as keyof ILeaderboard, numValue);
+    setErrors({ ...errors, [fieldName]: error ?? '' });
   };
 
   const handleSubmit = () => {
-    onSave(formData);
+    const newErrors: { [key: string]: string } = {};
+    
+    // Validate all fields
+    Object.keys(leaderboardValidationRules).forEach((key) => {
+      const error = validateField(
+        key as keyof ILeaderboard,
+        formData[key as keyof ILeaderboard]
+      );
+      if (error) {
+        newErrors[key] = error;
+      }
+    });
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length === 0) {
+      onSave(formData);
+    }
   };
 
   return (
@@ -88,49 +153,47 @@ export default function LeaderboardForm({
         {() => (
           <>
             <ModalHeader>
-              {isEdit
-                ? "Editar Tabla de Posiciones"
-                : "Crear Tabla de Posiciones"}
+              {isEdit ? "Editar Tabla de Posiciones" : "Crear Tabla de Posiciones"}
             </ModalHeader>
             <ModalBody>
               <Select
                 label="Equipo"
-                name="teamId"
-                value={formData.teamId.toString()}
-                onChange={handleSelectChange}
+                selectedKeys={formData.teamId ? [formData.teamId.toString()] : []}
+                onSelectionChange={(keys) => handleSelectChange("teamId", Array.from(keys)[0] as string)}
+                isInvalid={!!errors.teamId}
+                errorMessage={errors.teamId}
+                isRequired
               >
-                {(teams || []).map((team: ITeam) => (
-                  <SelectItem key={team.teamId ?? 0} value={team.teamId}>
+                {(teams ?? []).map((team) => (
+                  <SelectItem key={team.teamId?.toString() ?? 0} value={team.teamId}>
                     {team.name}
                   </SelectItem>
                 ))}
               </Select>
               <Select
                 label="Temporada"
-                name="seasonId"
-                value={formData.seasonId.toString()}
-                onChange={handleSelectChange}
+                selectedKeys={formData.seasonId ? [formData.seasonId.toString()] : []}
+                onSelectionChange={(keys) => handleSelectChange("seasonId", Array.from(keys)[0] as string)}
+                isInvalid={!!errors.seasonId}
+                errorMessage={errors.seasonId}
+                isRequired
               >
-                {(seasons || []).map((season: ISeason) => (
-                  <SelectItem
-                    key={season.seasonId ?? 0}
-                    value={season.seasonId}
-                  >
+                {(seasons ?? []).map((season) => (
+                  <SelectItem key={season.seasonId?.toString() ?? 0} value={season.seasonId}>
                     {season.seasonName}
                   </SelectItem>
                 ))}
               </Select>
               <Select
                 label="Categoría"
-                name="categoryId"
-                value={formData.categoryId.toString()}
-                onChange={handleSelectChange}
+                selectedKeys={formData.categoryId ? [formData.categoryId.toString()] : []}
+                onSelectionChange={(keys) => handleSelectChange("categoryId", Array.from(keys)[0] as string)}
+                isInvalid={!!errors.categoryId}
+                errorMessage={errors.categoryId}
+                isRequired
               >
-                {(categories || []).map((category) => (
-                  <SelectItem
-                    key={category.categoryId ?? 0}
-                    value={category.categoryId}
-                  >
+                {(categories ?? []).map((category) => (
+                  <SelectItem key={category.categoryId?.toString() ?? 0} value={category.categoryId}>
                     {category.categoryName}
                   </SelectItem>
                 ))}
@@ -141,30 +204,45 @@ export default function LeaderboardForm({
                 name="points"
                 value={formData.points.toString()}
                 onChange={handleChange}
+                isInvalid={!!errors.points}
+                errorMessage={errors.points}
+                isRequired
               />
               <Input
                 label="Partidos Ganados"
-                name="matches_won"
+                name="matchesWon"
                 value={formData.matchesWon.toString()}
                 onChange={handleChange}
+                isInvalid={!!errors.matchesWon}
+                errorMessage={errors.matchesWon}
+                isRequired
               />
               <Input
                 label="Partidos Empatados"
-                name="matches_draw"
+                name="matchesDrawn"
                 value={formData.matchesDrawn.toString()}
                 onChange={handleChange}
+                isInvalid={!!errors.matchesDrawn}
+                errorMessage={errors.matchesDrawn}
+                isRequired
               />
               <Input
                 label="Partidos Perdidos"
-                name="matches_lost"
+                name="matchesLost"
                 value={formData.matchesLost.toString()}
                 onChange={handleChange}
+                isInvalid={!!errors.matchesLost}
+                errorMessage={errors.matchesLost}
+                isRequired
               />
               <Input
                 label="Goles Anotados"
-                name="goals_scored"
+                name="goalsScored"
                 value={formData.goalsScored.toString()}
                 onChange={handleChange}
+                isInvalid={!!errors.goalsScored}
+                errorMessage={errors.goalsScored}
+                isRequired
               />
             </ModalBody>
             <ModalFooter>

@@ -48,8 +48,8 @@ const useMatch = () => {
         return false;
     };
 
-    const handleUpdateMatch = async (match: IMatch) => {
-        const success = await modifyMatch(match);
+    const handleUpdateMatch = async (matchId: number, updateData: Partial<IMatch>) => {
+        const success = await modifyMatch(matchId, updateData);
         if (success) {
             Swal.fire({
                 icon: 'success',
