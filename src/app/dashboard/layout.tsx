@@ -9,8 +9,15 @@ import {
   NavbarContent,
   NavbarItem,
 } from "@nextui-org/navbar";
+import useAuth from "../auth/hook/useAuth";
+import { User } from "@nextui-org/user";
+import useUser from "./users/hooks/useUser";
+import { useEffect } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
+  const {  handlerLogout } = useAuth();
+
+  const userLog = localStorage.getItem('user');
   return (
     <div className="flex flex-row w-full">
       <Sidebar />
@@ -22,11 +29,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <NavbarContent className="hidden sm:flex gap-4" justify="center">
             
             <NavbarItem className="hidden lg:flex">
-              <a href="#">Admin</a>
+              <User
+                name={userLog?.toString()}
+                description="Bienvenido"
+                avatarProps={{
+                  src: "https://avatars.githubusercontent.com/u/30373425?v=4"
+                }}
+              />
             </NavbarItem>
             <NavbarItem>
-              <Button as={Link} color="warning" href="#" variant="flat">
-                Logout
+              <Button onClick={() => handlerLogout()} color="danger"  variant="flat">
+                Salir
               </Button>
             </NavbarItem>
           </NavbarContent>
