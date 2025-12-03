@@ -1,36 +1,74 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🏆 Football Championship Management
 
-## Getting Started
+Complete client-server system for football championship management, featuring a Java backend and a Next.js frontend with NextUI.
 
-First, run the development server:
+## 📋 Description
 
-```bash
+A robust platform for organizing, managing, and tracking football tournaments. The system handles everything from registration and scheduling to real-time scoring and automatic calculation of league standings, designed for high performance and scalability.
+
+**Features:**
+
+-   Comprehensive CRUD for Tournaments, Teams, and Players
+    
+-   Match scheduling and fixture generation
+    
+-   Real-time score updates via WebSockets (Simulated)
+    
+-   Automated standings and statistics calculation
+    
+-   User authentication and authorization (Admin/Public)
+    
+-   Modern and responsive frontend interface
+    
+
+## 🛠️ Technologies
+
+-   **Backend:** Java, Spring Boot, PostgreSQL, JPA/Hibernate
+    
+-   **Frontend:** Next.js, NextUI, TypeScript, React Query (TanStack Query)
+    
+
+## 🚀 Installation
+
+```
+# Clone the repository (Assuming monorepo or separate repos setup)
+git clone [https://github.com/vKail/championship-football.git](https://github.com/vKail/championship-football.git)
+git clone [https://github.com/vKail/championship-football-front.git](https://github.com/vKail/championship-football-front.git)
+
+# 1. Backend Setup (Java/Spring Boot)
+cd championship-football
+# Configure PostgreSQL settings in application.properties
+./mvnw spring-boot:run
+
+# 2. Frontend Setup (Next.js)
+cd championship-football-front
+npm install
+# Configure API URL in .env
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📂 Project Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Separated into Backend (Clean/Hexagonal Architecture) and Frontend (Feature-based):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+championship-football/ (Backend)
+├── src/main/java/
+│   ├── application/
+│   ├── domain/
+│   └── infrastructure/
 
-## Learn More
+championship-football-front/ (Frontend)
+├── src/
+│   ├── app/
+│   ├── components/
+│   ├── lib/
+│   └── features/
 
-To learn more about Next.js, take a look at the following resources:
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 👥 Contributors
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+-   **Adrian Jurado** - [@vKail](https://github.com/vKail "null")
+    
